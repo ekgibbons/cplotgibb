@@ -17,67 +17,258 @@
 #include <stdlib.h>
 #include <string.h>
 
-/**
- * @brief Open the .tikz file to write and start writing
- *
- * @param[in] filename file name
- * @return file pointer
- */
-FILE *tikz_figure(char *filename)
+typedef struct plot_data
 {
-    FILE *fp = fopen(filename, "w");
-    fprintf(fp, "\\begin{tikzpicture}\n");
+    int length;
+    char type[100];
+    char color[20];
+    char legend[50];
+    struct plot_data *next;
+    double data[0];
+} plot_data;
 
-    return fp;
-}
-
-/**
- * @brief Finish writing the file and close it
- *
- * @param[in] fp file pointer
- */
-void tikz_plotter_close(FILE *fp)
+typedef struct plt
 {
-    fprintf(fp, "\\end{axis}\n");
-    fprintf(fp, "\\end{tikzpicture}\n");
-
-    // Close the file
-    fclose(fp);
-}
-
-/**
- * @brief Define basic axes
- *
- * @param[inout] fp file pointer
- * @param[in] type axis type ("standard" or "center") where "standard" are the
- *                 axes normally seen in matplotlib and "center" is a more
- *                 traditional cartesian axisDescription
- * @param[in] count the number of additional inputs 0 to 4
- */
-void tikz_define_axis(FILE *fp, int count, ...)
-{
-    // type ("center" | "standard")
+    char filename[100];
     char type[10];
+    double xmin;
+    double xmax;
+    double ymin;
+    double ymax;
+    unsigned char grid;
+    double width;
+    double height;
+    char xlabel[100];
+    char ylabel[100];
+    char legend_position[20];
+    plot_data *data;
+} plt;
 
-    // start parsing additional arguments
-    va_list args;
-    va_start(args, count);
+plt *plt_figure(char *filename)
+{
+    plt *figure = (plt *)malloc(sizeof(*figure));
+    strcpy(figure->filename, filename);
+    strcpy(figure->type, "standard");
+    strcpy(figure->xlabel, "");
+    strcpy(figure->ylabel, "");
+    strcpy(figure->legend_position, "");
+    figure->xmin = 0.;
+    figure->xmax = 0.;
+    figure->ymin = 0.;
+    figure->ymax = 0.;
+    figure->data = NULL;
 
-    // if not specified, default to "standard"
-    if (count == 0)
+    return figure;
+}
+
+void plt_axes_type(plt *figure, char *type)
+{
+    strcpy(figure->type, type);
+}
+
+void plt_xlim(plt *figure, double xmin, double xmax)
+{
+    figure->xmin = xmin;
+    figure->xmax = xmax;
+}
+
+void plt_ylim(plt *figure, double ymin, double ymax)
+{
+    figure->ymin = ymin;
+    figure->ymax = ymax;
+}
+
+void plt_dims(plt *figure, double width, double height)
+{
+    figure->width = width;
+    figure->height = height;
+}
+
+void plt_grid(plt *figure)
+{
+    figure->grid = 1;
+}
+
+void plt_xlabel(plt *figure, char *xlabel)
+{
+    strcpy(figure->xlabel, xlabel);
+}
+
+void plt_ylabel(plt *figure, char *ylabel)
+{
+    strcpy(figure->ylabel, ylabel);
+}
+
+void plt_legend_pos(plt *figure, char *position)
+{
+    strcpy(figure->legend_position, position);
+}
+
+void plt_plot(plt *figure, double *x, double *y, int data_len, char *color,
+              char *legend_entry)
+{
+    plot_data *data_in = (plot_data *)malloc(
+        sizeof(*data_in) + sizeof(double) * (size_t)(2 * data_len));
+    data_in->length = data_len;
+    strcpy(data_in->type, "plot");
+    strcpy(data_in->color, color);
+    strcpy(data_in->legend, legend_entry);
+    data_in->next = NULL;
+
+    for (int i = 0; i < data_len; i++)
     {
-        strcpy(type, "standard");
+        data_in->data[2 * i] = x[i];
+        data_in->data[2 * i + 1] = y[i];
+    }
+
+    if (figure->data == NULL)
+    {
+        figure->data = data_in;
     }
     else
     {
-        strcpy(type, va_arg(args, char *));
+        plot_data *current = figure->data;
+
+        while (current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = data_in;
+    }
+}
+
+void plt_stem(plt *figure, double *x, double *y, int data_len, char *color,
+              char *legend_entry)
+{
+    plot_data *data_in = (plot_data *)malloc(
+        sizeof(*data_in) + sizeof(double) * (size_t)(2 * data_len));
+    data_in->length = data_len;
+    strcpy(data_in->type, "stem");
+    strcpy(data_in->color, color);
+    strcpy(data_in->legend, legend_entry);
+    data_in->next = NULL;
+
+    for (int i = 0; i < data_len; i++)
+    {
+        data_in->data[2 * i] = x[i];
+        data_in->data[2 * i + 1] = y[i];
     }
 
-    // Write the plot data
-    fprintf(fp, "\\begin{axis}[\n");
+    if (figure->data == NULL)
+    {
+        figure->data = data_in;
+    }
+    else
+    {
+        plot_data *current = figure->data;
+
+        while (current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = data_in;
+    }
+}
+
+void add_plot(FILE *fp, plot_data *data_in)
+{
+
+    fprintf(fp, "\\addplot [\n");
+
+    if (strcmp(data_in->color, "") != 0)
+    {
+        fprintf(fp, "color=%s,\n", data_in->color);
+    }
+
+    /* "mark=%s, " */
+    /* "mark options={scale=1.5}, " */
+    fprintf(fp, "line width=1pt] coordinates {\n");
+
+    // Write x and y values to the plot
+    for (int i = 0; i < data_in->length; ++i)
+    {
+        fprintf(fp, "    (%f,%f)\n", data_in->data[2 * i],
+                data_in->data[2 * i + 1]);
+    }
+
+    fprintf(fp, "};\n");
+    if (strcmp(data_in->legend, "") != 0)
+    {
+        fprintf(fp, "\\addlegendentry{%s}\n", data_in->legend);
+    }
+}
+
+void add_stem(FILE *fp, plot_data *data_in)
+{
+
+    fprintf(
+        fp,
+        "\\addplot +[ycomb, %s, thick, mark options={fill}] coordinates {\n",
+        data_in->color);
+
+    // Write x and y values to the plot
+    for (int i = 0; i < data_in->length; ++i)
+    {
+        fprintf(fp, "    (%f,%f)\n", data_in->data[2 * i],
+                data_in->data[2 * i + 1]);
+    }
+
+    fprintf(fp, "};\n");
+    if (strcmp(data_in->legend, "") != 0)
+    {
+        fprintf(fp, "\\addlegendentry{%s}\n", data_in->legend);
+    }
+}
+
+void write_data(FILE *fp, plot_data *data_in)
+{
+    plot_data *current = data_in;
+
+    while (current != NULL)
+    {
+        if (strcmp(current->type, "plot") == 0)
+        {
+            add_plot(fp, current);
+        }
+        else if (strcmp(current->type, "stem") == 0)
+        {
+            add_stem(fp, current);
+        }
+        else
+        {
+            printf("ERROR:  %s invalid plot type!\n", current->type);
+            exit(1);
+        }
+        current = current->next;
+    }
+}
+
+void clean_up(plt *figure)
+{
+    plot_data *current = figure->data;
+    plot_data *previous;
+
+    while (current != NULL)
+    {
+        previous = current;
+        current = current->next;
+        free(previous);
+        previous = NULL;
+    }
+
+    free(figure);
+    figure = NULL;
+}
+
+void plt_save_fig(plt *figure)
+{
+    FILE *fp = fopen(figure->filename, "w");
+    fprintf(fp, "\\begin{tikzpicture}\n");
+    fprintf(fp, "\\begin{axis}\n");
+    fprintf(fp, "[\n");
 
     // Fix label locations for "center" case
-    if (strcmp(type, "center") == 0)
+    if (strcmp(figure->type, "center") == 0)
     {
         fprintf(fp, "axis lines=center,\n"
                     "axis x line = middle,\n"
@@ -91,133 +282,68 @@ void tikz_define_axis(FILE *fp, int count, ...)
                     "anchor=south,\n"
                     "},");
     }
-    else if (strcmp(type, "standard") == 0)
+    else if (strcmp(figure->type, "standard") == 0)
     {
     }
     else
     {
-        printf("ERROR: please set axis type  'standard' or 'center'\n");
+        printf("ERROR: please set axis type  'standard' or "
+               "'center'\n");
         exit(1);
     }
 
-    // Parse xlim and ylim
-
-    // At least xlim values were entered
-    if ((count == 3) || (count == 5))
+    if ((figure->xmin != 0.) || (figure->xmax != 0.))
     {
-        double xmin = va_arg(args, double);
-        double xmax = va_arg(args, double);
-
-        fprintf(fp, "xmin = %f, xmax = %f,\n", xmin, xmax);
-
-        // ylim values were ALSO added
-        if (count == 5)
-        {
-            double ymin = va_arg(args, double);
-            double ymax = va_arg(args, double);
-
-            fprintf(fp, "ymin = %f, ymax = %f,\n", ymin, ymax);
-        }
+        fprintf(fp, "xmin = %f, xmax = %f,\n", figure->xmin, figure->xmax);
     }
-    else if ((count != 0) && ((count % 2) == 0))
+
+    if ((figure->ymin != 0.) || (figure->ymax != 0.))
     {
-        printf("ERROR: please specify the type, xmin, xmax, ymin, and ymax "
-               "values\n");
-        exit(1);
+        fprintf(fp, "ymin = %f, ymax = %f,\n", figure->ymin, figure->ymax);
     }
+
+    if (figure->grid == 1)
+    {
+        fprintf(fp, "grid=major,\n");
+    }
+
+    if (figure->width != 0.)
+    {
+        fprintf(fp, "width=%f cm,\n", figure->width);
+    }
+
+    if (figure->height != 0.)
+    {
+        fprintf(fp, "height=%f cm,\n", figure->height);
+    }
+
+    if (strcmp(figure->xlabel, "") != 0)
+    {
+        fprintf(fp, "xlabel=%s,\n", figure->xlabel);
+    }
+
+    if (strcmp(figure->ylabel, "") != 0)
+    {
+        fprintf(fp, "ylabel=%s,\n", figure->ylabel);
+    }
+
+    if (strcmp(figure->legend_position, "") != 0)
+    {
+        fprintf(fp, "legend pos=%s,\n", figure->legend_position);
+    }
+
     fprintf(fp, "]\n");
-    va_end(args);
-}
 
-/**
- * @brief Adds plot line
- *
- * @param[inout] fp Description
- * @param[out] x Description
- * @param[out] y Description
- * @param[in] data_len The length of data
- * @param[out] color Description
- * @param[out] legend_entry legend label
- */
-void tikz_plot(FILE *fp, double *x, double *y, int data_len, char *color,
-               char *legend_entry)
-{
+    write_data(fp, figure->data);
 
-    fprintf(fp,
-            "\\addplot [color=%s, "
-            /* "mark=%s, " */
-            /* "mark options={scale=1.5}, " */
-            "line width=1pt] coordinates {\n",
-            color);
+    fprintf(fp, "\\end{axis}\n");
+    fprintf(fp, "\\end{tikzpicture}\n");
 
-    // Write x and y values to the plot
-    for (int i = 0; i < data_len; ++i)
-    {
-        fprintf(fp, "    (%f,%f)\n", x[i], y[i]);
-    }
+    // Free memory
+    clean_up(figure);
 
-    fprintf(fp, "};\n");
-    if (legend_entry != NULL)
-    {
-        fprintf(fp, "\\addlegendentry{%s}\n", legend_entry);
-    }
-}
-
-/**
- * @brief Turn on grid lines
- *
- * @param[inout] fp file pointer
- */
-void tikz_grid(FILE *fp)
-{
-    fprintf(fp, "\\pgfplotsset{grid=major}\n");
-}
-
-/**
- * @brief Set figure dimensions
- *
- * @param[inout] fp file pointer
- * @param[in] width width in centimeters
- * @param[in] height height in centimeters
- */
-void tikz_dims(FILE *fp, double width, double height)
-{
-    fprintf(fp, "\\pgfplotsset{width = %f cm, height = %f cm}\n", width,
-            height);
-}
-
-/**
- * @brief Add x-label
- *
- * @param[inout] fp file pointer
- * @param[out] xlabel text for x-axis label
- */
-void tikz_xlabel(FILE *fp, char *xlabel)
-{
-    fprintf(fp, "\\pgfplotsset{xlabel=%s}\n", xlabel);
-}
-
-/**
- * @brief Add y-label
- *
- * @param[inout] fp file pointer
- * @param[out] ylabel text for y-axis label
- */
-void tikz_ylabel(FILE *fp, char *ylabel)
-{
-    fprintf(fp, "\\pgfplotsset{ylabel=%s}\n", ylabel);
-}
-
-/**
- * @brief Set legend location
- *
- * @param[inout] fp file pointer
- * @param[out] position location ("north east" | "south east" | "south west" |
- *                      "north west")
- */
-void tikz_legend(FILE *fp, char *position)
-{
-    fprintf(fp, "\\pgfplotsset{legend pos=%s}\n", position);
+    // Close the file
+    fclose(fp);
 }
 
 #endif /* CPLOTGIBB_H */
