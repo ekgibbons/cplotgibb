@@ -46,7 +46,7 @@ int main()
 
     int n = sizeof(x) / sizeof(x[0]); // Size of the arrays
 
-    plt *fig1 = plt_figure("out.tikz");
+    plt *fig1 = plt_figure("out.pdf");
 
     plt_plot(fig1, x, y1, n, "teal", "$y_1(t)$");
     plt_plot(fig1, x, y2, n, "orange", "$y_2(t)$");

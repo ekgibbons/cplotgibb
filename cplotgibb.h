@@ -180,8 +180,6 @@ void add_plot(FILE *fp, plot_data *data_in)
         fprintf(fp, "color=%s,\n", data_in->color);
     }
 
-    /* "mark=%s, " */
-    /* "mark options={scale=1.5}, " */
     fprintf(fp, "line width=1pt] coordinates {\n");
 
     // Write x and y values to the plot
@@ -262,7 +260,48 @@ void clean_up(plt *figure)
 
 void plt_save_fig(plt *figure)
 {
-    FILE *fp = fopen(figure->filename, "w");
+
+    FILE *fp;
+    char filename_no_ext[120];
+    char filename_tex[120];
+
+    // Check if the filename ends with .eps or .pdf
+    char *ext = strrchr(figure->filename, '.');
+    if (ext != NULL)
+    {
+        // Remove the extension from the filename
+        strncpy(filename_no_ext, figure->filename, ext - figure->filename);
+        filename_no_ext[ext - figure->filename] = '\0';
+    }
+    else
+    {
+        // No extension found, use the full filename
+        strcpy(filename_no_ext, figure->filename);
+    }
+
+    if (ext != NULL && (strcmp(ext, ".eps") == 0 || strcmp(ext, ".pdf") == 0))
+    {
+        // Add LaTeX preamble for standalone compilation
+        snprintf(filename_tex, sizeof(filename_tex), "%s.tex", filename_no_ext);
+
+        fp = fopen(filename_tex, "w");
+        if (fp == NULL)
+        {
+            fprintf(stderr, "Error: Could not open file %s for writing.\n", filename_tex);
+            exit(1);
+        }
+
+        fprintf(fp, "\\documentclass{standalone}\n");
+        fprintf(fp, "\\usepackage{filecontents,pgfplots,tikz}\n");
+        fprintf(fp, "\\pgfplotsset{compat=1.18}\n");
+        fprintf(fp, "\\begin{document}\n");
+    }
+    else
+    {
+        // If not .eps or .pdf, just create the TikZ file
+        fp = fopen(figure->filename, "w");
+    }
+
     fprintf(fp, "\\begin{tikzpicture}\n");
     fprintf(fp, "\\begin{axis}\n");
     fprintf(fp, "[\n");
@@ -339,11 +378,49 @@ void plt_save_fig(plt *figure)
     fprintf(fp, "\\end{axis}\n");
     fprintf(fp, "\\end{tikzpicture}\n");
 
-    // Free memory
-    clean_up(figure);
+    // Check if the filename ends with .eps or .pdf.  Finish writing to file.
+    if (ext != NULL && (strcmp(ext, ".eps") == 0 || strcmp(ext, ".pdf") == 0))
+    {
+        fprintf(fp, "\\end{document}\n");
 
-    // Close the file
-    fclose(fp);
+        // Free memory
+        clean_up(figure);
+
+        // Close the file
+        fclose(fp);
+
+        // Compile the LaTeX file to generate the output
+        char command[120];
+
+        snprintf(command, sizeof(command), "pdflatex %s\n", filename_tex);
+
+        int result = system(command);
+        if (result != 0)
+        {
+            fprintf(stderr, "Error: Failed to compile LaTeX file.\n");
+            exit(1);
+        }
+
+        // Remove the temporary .tex, .aux, and .log files
+        snprintf(command, sizeof(command), "rm %s %s.aux %s.log\n", filename_tex, filename_no_ext, filename_no_ext);
+
+        printf("%s", command);
+
+        result = system(command);
+        if (result != 0)
+        {
+            fprintf(stderr, "Error: Failed to remove temporary .tex file.\n");
+            exit(1);
+        }
+    }
+    else
+    {
+        // Free memory
+        clean_up(figure);
+
+        // Close the file
+        fclose(fp);
+    }
 }
 
 #endif /* CPLOTGIBB_H */
