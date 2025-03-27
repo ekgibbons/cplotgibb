@@ -1,12 +1,7 @@
-all: plotter pdf
+all: plotter
 
 plotter: plotter.c cplotgibb.h
-	gcc -O3 -Wall -Wconversion -o $@ $<
-
-
-pdf: test.tex
-	pdflatex $^
-	make clean
+	gcc -O3 -Wall -Wconversion -Werror -o $@ $<
 
 clean:
 	rm -rf auto/ *.aux *.log
