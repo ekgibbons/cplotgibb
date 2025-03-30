@@ -12,6 +12,19 @@ C to TikZ plotting utility.
 - Customizable axes, labels, grid, and dimensions
 - Easy-to-use API for creating and saving plots
 
+## Installation
+
+To install run 
+```bash
+$ make install
+```
+which will copy the `cplotgibb.h` file to `/usr/local/include` file.  You can override but predefining `INCLUDEDIR` or `PREFIX`.
+
+To remove the header file, run
+```bash
+$ make uninstall
+```
+
 ## Example Usage
 
 Below is an example of how to use `cplotgibb` to create a plot with multiple datasets.
