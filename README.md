@@ -16,13 +16,13 @@ C to TikZ plotting utility.
 
 To install run 
 ```bash
-$ make install
+make install
 ```
 which will copy the `cplotgibb.h` file to `/usr/local/include` file.  You can override but predefining `INCLUDEDIR` or `PREFIX`.
 
 To remove the header file, run
 ```bash
-$ make uninstall
+make uninstall
 ```
 
 ## Example Usage
