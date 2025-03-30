@@ -157,7 +157,10 @@ typedef struct plt
  * other fields are initialized to default values such as empty strings or zero.
  *
  * @param filename A string representing the name of the file associated with the plot.
- *                  This value is copied into the plt structure.
+ *                 This value is copied into the plt structure. A .pdf or .eps extension
+ *                 will result in the .tikz code compiled as a standalone pdf or eps file.
+ *                 For this functionality, the user must have pdflatex installed.
+ *                 Otherwise, the .tikz text file will be created.
  *
  * @return A pointer to the newly created plt structure. The caller is responsible
  *         for freeing the allocated memory using `free()` when it is no longer needed.
@@ -197,6 +200,9 @@ plt *plt_figure(char *filename)
  *
  * @param figure A pointer to the `plt` structure representing the plot figure.
  * @param type A string specifying the type of axes to set for the plot figure.
+ *             There are two options: a standard plot, which has the plot centered
+ *             in the plot box similar to matplotlib, or a centered plot, where
+ *             the plot is centered in the plot box.
  *
  * @note Ensure that the `type` string is properly null-terminated and that
  *       the `figure->type` field has enough allocated memory to store the
@@ -542,10 +548,11 @@ void clean_up(plt *figure)
  * @brief Saves the given plot figure to a file.
  *
  * This function takes a pointer to a `plt` structure representing a plot
- * figure and saves it to a file. The specific file format and location
- * depend on the implementation details of the function.
+ * figure and saves it to a file. The specific file format depends on how
+ * the `plt` structure was initialized.
  *
- * @param figure A pointer to the `plt` structure representing the plot figure to be saved.
+ * @param figure A pointer to the `plt` structure representing the plot
+ *               figure to be saved.
  */
 void plt_save_fig(plt *figure)
 {
