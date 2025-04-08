@@ -175,7 +175,7 @@ typedef struct plt
  *       - `ymin`, `ymax`: The minimum and maximum values for the y-axis (default is 0.0).
  *       - `data`: A pointer to the data associated with the plot (default is NULL).
  */
-plt *plt_figure(char *filename)
+__attribute__((unused)) static plt *plt_figure(char *filename)
 {
     plt *figure = (plt *)malloc(sizeof(*figure));
     strcpy(figure->filename, filename);
@@ -208,7 +208,8 @@ plt *plt_figure(char *filename)
  *       the `figure->type` field has enough allocated memory to store the
  *       provided string.
  */
-void plt_axes_type(plt *figure, char *type)
+__attribute__((unused)) static void
+plt_axes_type(plt *figure, char *type)
 {
     strcpy(figure->type, type);
 }
@@ -222,7 +223,7 @@ void plt_axes_type(plt *figure, char *type)
  * @param xmin The minimum value for the x-axis.
  * @param xmax The maximum value for the x-axis.
  */
-void plt_xlim(plt *figure, double xmin, double xmax)
+__attribute__((unused)) static void plt_xlim(plt *figure, double xmin, double xmax)
 {
     figure->xmin = xmin;
     figure->xmax = xmax;
@@ -237,7 +238,7 @@ void plt_xlim(plt *figure, double xmin, double xmax)
  * @param ymin The minimum value for the y-axis.
  * @param ymax The maximum value for the y-axis.
  */
-void plt_ylim(plt *figure, double ymin, double ymax)
+__attribute__((unused)) static void plt_ylim(plt *figure, double ymin, double ymax)
 {
     figure->ymin = ymin;
     figure->ymax = ymax;
@@ -252,7 +253,8 @@ void plt_ylim(plt *figure, double ymin, double ymax)
  * @param width The desired width of the plot figure.
  * @param height The desired height of the plot figure.
  */
-void plt_dims(plt *figure, double width, double height)
+__attribute__((unused)) static void
+plt_dims(plt *figure, double width, double height)
 {
     figure->width = width;
     figure->height = height;
@@ -266,7 +268,8 @@ void plt_dims(plt *figure, double width, double height)
  *
  * @param figure A pointer to the `plt` structure representing the plot figure.
  */
-void plt_grid(plt *figure)
+__attribute__((unused)) static void
+plt_grid(plt *figure)
 {
     figure->grid = 1;
 }
@@ -281,7 +284,7 @@ void plt_grid(plt *figure)
  *       that the figure's xlabel field has sufficient space to store the string.
  *       This function does not perform bounds checking.
  */
-void plt_xlabel(plt *figure, char *xlabel)
+__attribute__((unused)) static void plt_xlabel(plt *figure, char *xlabel)
 {
     strcpy(figure->xlabel, xlabel);
 }
@@ -294,7 +297,7 @@ void plt_xlabel(plt *figure, char *xlabel)
  * @param figure A pointer to the `plt` structure representing the plot.
  * @param ylabel A string containing the label for the y-axis.
  */
-void plt_ylabel(plt *figure, char *ylabel)
+__attribute__((unused)) static void plt_ylabel(plt *figure, char *ylabel)
 {
     strcpy(figure->ylabel, ylabel);
 }
@@ -310,7 +313,8 @@ void plt_ylabel(plt *figure, char *ylabel)
  *       the allocated size of the `legend_position` field in the `plt` structure
  *       to avoid buffer overflows.
  */
-void plt_legend_pos(plt *figure, char *position)
+__attribute__((unused)) static void
+plt_legend_pos(plt *figure, char *position)
 {
     strcpy(figure->legend_position, position);
 }
@@ -328,8 +332,9 @@ void plt_legend_pos(plt *figure, char *position)
  * @param color        String specifying the color of the plot (e.g., "red", "blue").
  * @param legend_entry String specifying the legend entry for the plot. Can be NULL if no legend is needed.
  */
-void plt_plot(plt *figure, double *x, double *y, int data_len, char *color,
-              char *legend_entry)
+__attribute__((unused)) static void
+plt_plot(plt *figure, double *x, double *y, int data_len, char *color,
+         char *legend_entry)
 {
     plot_data *data_in = (plot_data *)malloc(
         sizeof(*data_in) + sizeof(double) * (size_t)(2 * data_len));
@@ -378,8 +383,9 @@ void plt_plot(plt *figure, double *x, double *y, int data_len, char *color,
  * @param legend_entry String specifying the legend entry for the stem plot.
  *                     Pass NULL if no legend entry is required.
  */
-void plt_stem(plt *figure, double *x, double *y, int data_len, char *color,
-              char *legend_entry)
+__attribute__((unused)) static void plt_stem(plt *figure, double *x, double *y,
+                                             int data_len, char *color,
+                                             char *legend_entry)
 {
     plot_data *data_in = (plot_data *)malloc(
         sizeof(*data_in) + sizeof(double) * (size_t)(2 * data_len));
@@ -422,7 +428,7 @@ void plt_stem(plt *figure, double *x, double *y, int data_len, char *color,
  * @param data_in A pointer to a `plot_data` structure containing the
  *                data to be added to the plot.
  */
-void add_plot(FILE *fp, plot_data *data_in)
+__attribute__((unused)) static void add_plot(FILE *fp, plot_data *data_in)
 {
 
     fprintf(fp, "\\addplot [\n");
@@ -461,7 +467,7 @@ void add_plot(FILE *fp, plot_data *data_in)
  *                to be plotted. The structure should be properly initialized
  *                before passing it to this function.
  */
-void add_stem(FILE *fp, plot_data *data_in)
+__attribute__((unused)) static void add_stem(FILE *fp, plot_data *data_in)
 {
 
     fprintf(
@@ -493,8 +499,7 @@ void add_stem(FILE *fp, plot_data *data_in)
  * @param data_in A pointer to the plot_data structure containing the data
  *                to be written to the file.
  */
-
-void write_data(FILE *fp, plot_data *data_in)
+__attribute__((unused)) static void write_data(FILE *fp, plot_data *data_in)
 {
     plot_data *current = data_in;
 
@@ -527,7 +532,7 @@ void write_data(FILE *fp, plot_data *data_in)
  * @param figure A pointer to the plt structure representing the plot figure
  *               to be cleaned up. This must be a valid pointer.
  */
-void clean_up(plt *figure)
+__attribute__((unused)) static void clean_up(plt *figure)
 {
     plot_data *current = figure->data;
     plot_data *previous;
@@ -554,7 +559,7 @@ void clean_up(plt *figure)
  * @param figure A pointer to the `plt` structure representing the plot
  *               figure to be saved.
  */
-void plt_save_fig(plt *figure)
+__attribute__((unused)) static void plt_save_fig(plt *figure)
 {
 
     FILE *fp;
@@ -602,7 +607,7 @@ void plt_save_fig(plt *figure)
     fprintf(fp, "\\begin{axis}\n");
     fprintf(fp, "[\n");
 
-    // Fix label locations for "center" case
+    // Fix labels for "center" case
     if (strcmp(figure->type, "center") == 0)
     {
         fprintf(fp, "axis lines=center,\n"

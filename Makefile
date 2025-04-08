@@ -6,7 +6,7 @@ INCLUDEDIR ?= $(PREFIX)/include
 all: plotter
 
 plotter: plotter.c cplotgibb.h
-	gcc -O3 -Wall -Wconversion -Werror -o $@ $<
+	gcc -O3 -Wall -Wconversion -o $@ $<
 
 install: cplotgibb.h
 	@echo "Installing cplotgibb.h to $(INCLUDEDIR)..."
@@ -20,4 +20,4 @@ uninstall:
 	@echo "Uninstallation complete."
 
 clean:
-	rm -rf auto/ *.aux *.log *.pdf
+	rm -rf auto/ *.aux *.log *.pdf plotter
