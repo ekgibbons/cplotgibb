@@ -332,9 +332,8 @@ plt_legend_pos(plt *figure, char *position)
  * @param color        String specifying the color of the plot (e.g., "red", "blue").
  * @param legend_entry String specifying the legend entry for the plot. Can be NULL if no legend is needed.
  */
-__attribute__((unused)) static void
-plt_plot(plt *figure, double *x, double *y, int data_len, char *color,
-         char *legend_entry)
+__attribute__((unused)) static void plt_plot(plt *figure, double *x, double *y, int data_len, char *color,
+                                             char *legend_entry)
 {
     plot_data *data_in = (plot_data *)malloc(
         sizeof(*data_in) + sizeof(double) * (size_t)(2 * data_len));
