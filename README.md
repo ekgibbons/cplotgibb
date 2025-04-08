@@ -33,9 +33,6 @@ Below is an example of how to use `cplotgibb` to create a plot with multiple dat
 
 ```c
 #include "cplotgibb.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 ...
 
