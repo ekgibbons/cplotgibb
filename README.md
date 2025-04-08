@@ -32,6 +32,7 @@ Below is an example of how to use `cplotgibb` to create a plot with multiple dat
 ### Code Example
 
 ```c
+...
 #include "cplotgibb.h"
 
 ...
